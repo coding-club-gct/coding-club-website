@@ -5,11 +5,9 @@ const theme = createTheme({
     primary: {
       main: '#f1b900',
     },
-    // secondary: {
-    //   main: '#6c07ad',
-    //   light: '#9847cb',
-    //   dark: '#501b73',
-    // },
+    secondary: {
+      main: '#050505',
+    },
     // error: {
     //   main: '#ff1100',
     //   dark: '#9e1d15',

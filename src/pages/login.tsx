@@ -1,7 +1,7 @@
 import { Grid, Box, Typography, Button } from "@mui/material";
 import { Google } from "@mui/icons-material";
 import { useEffect } from "react";
-import { useSession, signIn, signOut } from "next-auth/react"
+import { useSession, signIn } from "next-auth/react"
 import { useRouter } from "next/router";
 
 export default function Login() {
@@ -9,7 +9,7 @@ export default function Login() {
   const router = useRouter()
   useEffect(() => {
     if (session) {
-      router.push('/')
+      router.push('/auth/discord')
     }
   })
   return (
@@ -25,7 +25,7 @@ export default function Login() {
             <Typography variant="h2" sx={{mb: 2}} fontWeight={800} textAlign="center" color="primary.main">Welcome to the Coding Club Portal</Typography>
             <Typography variant="body1" sx={{mb: 4}} textAlign='center' fontWeight={600} color='primary.light'>Please sign in with your GCT Email ID to continue</Typography>
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
-              <Button variant="outlined" color="primary" startIcon={<Google />} onClick={() => signIn()}>Sign in with Google</Button>
+              <Button variant="outlined" color="primary" startIcon={<Google />} onClick={() => signIn('google')}>Sign in with Google</Button>
             </Box>
           </Box>
         </Box>
@@ -33,3 +33,14 @@ export default function Login() {
     </Grid>
   )
 }
+
+// export async function getServerSideProps(context: GetServerSidePropsContext) {
+//   const session = await getServerSession(context.req, context.res, authOptions);
+//   if (session) {
+//     return { redirect: { destination: "/auth/discord" } };
+//   }
+//   const providers = await getProviders();
+//   return {
+//     props: { providers: providers ?? [] },
+//   }
+// }
