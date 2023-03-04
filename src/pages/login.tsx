@@ -1,21 +1,17 @@
 import { Grid, Box, Typography, Button } from "@mui/material";
 import { Google } from "@mui/icons-material";
-import { useState, useContext, useEffect } from "react";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../services/firebase";
-import AppContext from "../contexts/app";
+import { useEffect } from "react";
+import { useSession, signIn, signOut } from "next-auth/react"
+import { useRouter } from "next/router";
 
 export default function Login() {
-  const [data, setData] = useState<object>({})
-  const { session, setSession } = useContext(AppContext)
+  const { data: session } = useSession()
+  const router = useRouter()
   useEffect(() => {
-    setData(session)
+    if (session) {
+      router.push('/')
+    }
   })
-  const handleLogin = () => {
-    const provider = new GoogleAuthProvider()
-    provider.setCustomParameters({hd: "gct.ac.in"})
-    signInWithPopup(auth, provider).then(res => setSession(res.user))
-  }
   return (
     <Grid container spacing={0} sx={{height: {xs: 'auto', sm: '100vh'}}}>
       <Grid item xs={12} sm={6} sx={{bgcolor: '#f1b900'}}>
@@ -29,7 +25,7 @@ export default function Login() {
             <Typography variant="h2" sx={{mb: 2}} fontWeight={800} textAlign="center" color="primary.main">Welcome to the Coding Club Portal</Typography>
             <Typography variant="body1" sx={{mb: 4}} textAlign='center' fontWeight={600} color='primary.light'>Please sign in with your GCT Email ID to continue</Typography>
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
-              <Button variant="outlined" color="primary" startIcon={<Google />} onClick={handleLogin}>Sign in with Google</Button>
+              <Button variant="outlined" color="primary" startIcon={<Google />} onClick={() => signIn()}>Sign in with Google</Button>
             </Box>
           </Box>
         </Box>
