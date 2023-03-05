@@ -1,12 +1,12 @@
 const myColors = {
     primary: {
-      main: '#0025ff',
-      light: '#344cde',
+      main: '#f1b900',
+      light: '#bbb2b2',
       dark: '#273692',
     },
     secondary: {
-      main: '#6c07ad',
-      light: '#9847cb',
+      main: '#000',
+      light: '#050505',
       dark: '#501b73',
     },
     error: {
