@@ -42,7 +42,7 @@ export default function Login() {
       label: "Voila!",
       component: (
         <Box>
-          <Typography variant="h2" sx={{mb: 2}} fontWeight={800} textAlign="center" color="primary.light">Welcome to the Coding Club</Typography>
+          <Typography variant="h4" sx={{mb: 2}} fontWeight={800} textAlign="center" color="primary.light">Welcome to the Coding Club</Typography>
         </Box>
       )
     }
@@ -74,7 +74,7 @@ export default function Login() {
         }).finally(() => setActiveStep(2))
       }
     }
-  }, [session.user])
+  }, [session])
 
   return (
     <Grid container spacing={0} sx={{height: {xs: 'auto', sm: '100vh'}}}>
