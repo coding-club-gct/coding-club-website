@@ -13,6 +13,8 @@ export default function Login() {
     username: "",
     email: "",
     userDetailsID: "",
+    googleAuthenticated: false,
+    discordAuthenticated: false
   })
   const { data: session } = useSession()
   const steps = [
@@ -48,20 +50,23 @@ export default function Login() {
     }
   ]
   useEffect(() => {
+    setActiveStep(user.googleAuthenticated ? user.discordAuthenticated ? 2 : 1 : 0)
+  }, [user])
+  useEffect(() => {
+    console.log(user)
     if (!session || !session.user) return
-    console.log(session.user)
-    if (session.user.provider === "google") {
+    console.log(user.googleAuthenticated ? user.discordAuthenticated ? 2 : 1 : 0)
+    if (session.user.provider === "google" && !user.googleAuthenticated) {
       axios.get(`http://localhost:1337/api/user-details?filters[gctMailId][$eq]=${session.user!.email}&&fields[0]=id&&fields[1]=rollNo`).then(res => {
         if (!res.data.data.length) {
           // TODO: display user not found in database
           console.log("user not found")
         } else {
-          setActiveStep(1)
-          setUser({ ...user, username: res.data.data[0].attributes.rollNo, userDetailsID: res.data.data[0].id, email: session.user.email! })
+          setUser({ ...user, username: res.data.data[0].attributes.rollNo, userDetailsID: res.data.data[0].id, email: session.user.email!, googleAuthenticated: true })
         }
       })
     }
-    if (session.user.provider === "discord" && user.username) {
+    if (session.user.provider === "discord" && !user.discordAuthenticated) {
       axios.post("http://localhost:1337/api/auth/local/register", {
       username: user.username,
         email: user.email,
@@ -72,9 +77,13 @@ export default function Login() {
         setUser({
           username: "",
           email: "",
-          userDetailsID: ""
+          userDetailsID: "",
+          discordAuthenticated: true,
+          googleAuthenticated: true
         })
-        setActiveStep(2)
+      }).catch(err => {
+        // TODO: display user already verified
+        // TODO: handle other errors 
       })
     }
     if (activeStep == 2) {
