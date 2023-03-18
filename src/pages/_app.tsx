@@ -13,7 +13,7 @@ const theme = createTheme({
       main: '#000',
       light: '#050505'
     }
-  }
+  },
 })
 export default function App({ Component, pageProps }: AppProps) {
   return (

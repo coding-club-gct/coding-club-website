@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Grid, Box, Typography, Button, Stepper, Step, StepLabel } from "@mui/material";
-import { Google } from "@mui/icons-material";
+import { Grid, Box, Typography, Button, Stepper, Step, StepLabel, Modal, styled, makeStyles } from "@mui/material";
+import { Check, Google } from "@mui/icons-material";
 import { useEffect } from "react";
 import { useSession, signIn } from "next-auth/react"
 import axios from "axios";
 import { useSessionStorage } from "react-use-storage";
 import { UserSession } from "../types";
+import { StepIconProps } from '@mui/material/StepIcon';
 
 export default function Login() {
   const [activeStep, setActiveStep] = useState(0);
+  const [openModal, setOpenModal] = useState(false);
+  const [message, setMessage] = useState("")
   const [user, setUser] = useSessionStorage<UserSession>("user", {
     username: "",
     email: "",
@@ -49,6 +52,38 @@ export default function Login() {
       )
     }
   ]
+  const StepperIconStyledComponentRoot = styled('div')<{
+    ownerState: { completed?: boolean; active?: boolean };
+  }>(({ theme, ownerState }) => ({
+    borderColor: '#f1b900',
+    borderWidth: "1px",
+    zIndex: 1,
+    color: '#fff',
+    width: 30,
+    height: 30,
+    display: 'flex',
+    borderRadius: '50%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...(ownerState.active && {
+      background: '#f1b900',
+      color: "black"
+    }),
+    ...(ownerState.completed && {
+      background: '#f1b900',
+      color: "black"
+    }),
+  }));
+  
+  function StepperIconStyledComponent(props: StepIconProps) {
+    const { active, completed, className } = props;
+  
+    return (
+      <StepperIconStyledComponentRoot ownerState={{ completed, active }} className={className}>
+        {completed ? <Check sx={{fontSize: 20}} /> : props.icon}
+      </StepperIconStyledComponentRoot>
+    );
+  }
   useEffect(() => {
     setActiveStep(user.googleAuthenticated ? user.discordAuthenticated ? 2 : 1 : 0)
   }, [user])
@@ -57,10 +92,10 @@ export default function Login() {
     if (!session || !session.user) return
     console.log(user.googleAuthenticated ? user.discordAuthenticated ? 2 : 1 : 0)
     if (session.user.provider === "google" && !user.googleAuthenticated) {
-      axios.get(`http://localhost:1337/api/user-details?filters[gctMailId][$eq]=${session.user!.email}&&fields[0]=id&&fields[1]=rollNo`).then(res => {
+      axios.get(`http://localhost:1337/api/user-details?filters[gctMailId][$eq]=${session.user!.email}&&fields[0]=id&&fields[1]=rollNo`).then((res: any) => {
         if (!res.data.data.length) {
-          // TODO: display user not found in database
-          console.log("user not found")
+          setMessage("We cannot find your details in the server. But, don't worry, We'll update a form in this website soon!")
+          setOpenModal(true)
         } else {
           setUser({ ...user, username: res.data.data[0].attributes.rollNo, userDetailsID: res.data.data[0].id, email: session.user.email!, googleAuthenticated: true })
         }
@@ -81,9 +116,10 @@ export default function Login() {
           discordAuthenticated: true,
           googleAuthenticated: true
         })
-      }).catch(err => {
-        // TODO: display user already verified
-        // TODO: handle other errors 
+      }).catch(function (err: any) {
+        
+        // setMessage(err.message);
+        // setOpenModal(true);
       })
     }
     if (activeStep == 2) {
@@ -105,7 +141,7 @@ export default function Login() {
             {steps.map((step, index) => {
               return (
                 <Step key={step.label}>
-                  <StepLabel color="secondary">
+                  <StepLabel StepIconComponent={StepperIconStyledComponent}>
                     <Typography color="white">{step.label}</Typography>
                   </StepLabel>
                 </Step>
@@ -117,6 +153,32 @@ export default function Login() {
           </Box>
         </Box>
       </Grid>
+      <Modal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={{
+          position: 'absolute' as 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'black',
+          color: "white",
+          border: '2px solid #000',
+          boxShadow: 24,
+          p: 4,
+        }}>
+          <Typography id="modal-modal-title" color="primary.main" variant="h6" component="h2">
+            Oops! There seems to be a problem
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+            {message}
+          </Typography>
+        </Box>
+      </Modal>
     </Grid>
   )
 }

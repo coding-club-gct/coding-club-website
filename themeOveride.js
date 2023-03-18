@@ -1,7 +1,7 @@
 const myColors = {
     primary: {
       main: '#f1b900',
-      light: '#bbb2b2',
+      light: "#bbb2b2",
       dark: '#273692',
     },
     secondary: {
