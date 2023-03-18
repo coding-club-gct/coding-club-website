@@ -6,6 +6,7 @@ declare module "next-auth" {
       id?: string
       name?: string
       email?: string
+      provider?: string
     }
   }
   interface Profile {

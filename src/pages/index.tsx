@@ -6,7 +6,6 @@ import { useSession, signIn } from "next-auth/react"
 import axios from "axios";
 import { useSessionStorage } from "react-use-storage";
 import { UserSession } from "../types";
-import Cookies from 'js-cookie'
 
 export default function Login() {
   const [activeStep, setActiveStep] = useState(0);
@@ -14,9 +13,6 @@ export default function Login() {
     username: "",
     email: "",
     userDetailsID: "",
-    discordID: "",
-    googleAuthenticated: false,
-    discordAuthenticated: false
   })
   const { data: session } = useSession()
   const steps = [
@@ -53,30 +49,33 @@ export default function Login() {
   ]
   useEffect(() => {
     if (!session || !session.user) return
-    console.log(user.username)
-    if (!user.username) {
+    console.log(session.user)
+    if (session.user.provider === "google") {
       axios.get(`http://localhost:1337/api/user-details?filters[gctMailId][$eq]=${session.user!.email}&&fields[0]=id&&fields[1]=rollNo`).then(res => {
         if (!res.data.data.length) {
           // TODO: display user not found in database
           console.log("user not found")
         } else {
           setActiveStep(1)
-          setUser({ ...user, username: res.data.data[0].attributes.rollNo, userDetailsID: res.data.data[0], email: session.user.email! })
-          Cookies.remove("next-auth.session-token")
-          Cookies.remove("next-auth.callback-url")
-          Cookies.remove("next-auth.csrf-token")
+          setUser({ ...user, username: res.data.data[0].attributes.rollNo, userDetailsID: res.data.data[0].id, email: session.user.email! })
         }
       })
     }
-    if (user.username) {
-      console.log(Cookies.get("next-auth.session-token"))
-      // axios.post("http://localhost:1337/api/auth/local/register", {
-      //   username: user.username,
-      //   email: user.email,
-      //   password: String(Math.random()),
-      //   discordUID: session.user.id,
-      //   userDetail: Number(user.userDetailsID)
-      // }).then(() => setActiveStep(2))
+    if (session.user.provider === "discord" && user.username) {
+      axios.post("http://localhost:1337/api/auth/local/register", {
+      username: user.username,
+        email: user.email,
+        password: String(Math.random()),
+        discordUID: session.user.id,
+        userDetail: Number(user.userDetailsID)
+      }).then(() => {
+        setUser({
+          username: "",
+          email: "",
+          userDetailsID: ""
+        })
+        setActiveStep(2)
+      })
     }
     if (activeStep == 2) {
       // TODO
