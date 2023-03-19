@@ -7,6 +7,7 @@ import axios from "axios";
 import { useSessionStorage } from "react-use-storage";
 import { UserSession } from "../types";
 import { StepIconProps } from '@mui/material/StepIcon';
+import { SERVER_URL } from "../../constants";
 
 export default function Login() {
   const [activeStep, setActiveStep] = useState(0);
@@ -47,7 +48,8 @@ export default function Login() {
       label: "Voila!",
       component: (
         <Box>
-          <Typography variant="h4" sx={{ mb: 2 }} fontWeight={800} textAlign="center" color="primary.light">Welcome to the Coding Club</Typography>
+          <Typography variant="h4" sx={{ mb: 2 }} fontWeight={800} textAlign="center" color="primary.light"> 
+          Welcome to the Coding Club</Typography>
         </Box>
       )
     }
@@ -74,13 +76,13 @@ export default function Login() {
       color: "black"
     }),
   }));
-  
+
   function StepperIconStyledComponent(props: StepIconProps) {
     const { active, completed, className } = props;
-  
+
     return (
       <StepperIconStyledComponentRoot ownerState={{ completed, active }} className={className}>
-        {completed ? <Check sx={{fontSize: 20}} /> : props.icon}
+        {completed ? <Check sx={{ fontSize: 20 }} /> : props.icon}
       </StepperIconStyledComponentRoot>
     );
   }
@@ -90,11 +92,16 @@ export default function Login() {
   useEffect(() => {
     console.log(user)
     if (!session || !session.user) return
-    console.log(user.googleAuthenticated ? user.discordAuthenticated ? 2 : 1 : 0)
-    if (session.user.provider === "google" && !user.googleAuthenticated) {
-      axios.get(`http://localhost:1337/api/user-details?filters[gctMailId][$eq]=${session.user!.email}&&fields[0]=id&&fields[1]=rollNo`).then((res: any) => {
+    console.log(session.user)
+    if (session.user.provider === "google") {
+      axios.get(`${SERVER_URL}/api/user-details?filters[gctMailId][$eq]=${session.user!.email}&&fields[0]=id&&fields[1]=rollNo&&fields[2]=name`, {
+        headers: {
+          "Authorization": "Bearer " + process.env.NEXT_PUBLIC_SERVER_BEARER
+        }
+      }).then((res: any) => {
+        console.log(res)
         if (!res.data.data.length) {
-          setMessage("We cannot find your details in the server. But, don't worry, We'll update a form in this website soon!")
+          setMessage("We cannot find your details in our database. Kindly as your class representative to contact us.")
           setOpenModal(true)
         } else {
           setUser({ ...user, username: res.data.data[0].attributes.rollNo, userDetailsID: res.data.data[0].id, email: session.user.email!, googleAuthenticated: true })
@@ -102,12 +109,16 @@ export default function Login() {
       })
     }
     if (session.user.provider === "discord" && !user.discordAuthenticated) {
-      axios.post("http://localhost:1337/api/auth/local/register", {
-      username: user.username,
+      axios.post(`${SERVER_URL}/api/auth/local/register`, {
+        username: user.username,
         email: user.email,
         password: String(Math.random()),
         discordUID: session.user.id,
         userDetail: Number(user.userDetailsID)
+      }, {
+        headers: {
+          "Authorization": "Bearer " + process.env.NEXT_PUBLIC_SERVER_BEARER
+        }
       }).then(() => {
         setUser({
           username: "",
@@ -117,7 +128,7 @@ export default function Login() {
           googleAuthenticated: true
         })
       }).catch(function (err: any) {
-        
+
         // setMessage(err.message);
         // setOpenModal(true);
       })
@@ -136,7 +147,9 @@ export default function Login() {
       </Grid>
       <Grid item xs={12} sm={6} sx={{ bgcolor: 'black' }}>
         <Box sx={{ display: 'flex', flexDirection: "column", alignItems: 'center', height: '100%', p: { md: 10, sm: 4 } }}>
-          <Typography variant="h2" sx={{ mb: 2 }} fontWeight={800} textAlign="center" color="primary.main">Welcome to the Coding Club Portal</Typography>
+          <Typography variant="h2" sx={{ mb: 2 }} fontWeight={800} textAlign="center" color="primary.main">
+            Welcome to the Coding Club Portal
+            </Typography>
           <Stepper alternativeLabel activeStep={activeStep}>
             {steps.map((step, index) => {
               return (
