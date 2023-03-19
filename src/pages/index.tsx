@@ -11,8 +11,7 @@ import { SERVER_URL } from "../../constants";
 
 export default function Login() {
   const [activeStep, setActiveStep] = useState(0);
-  const [openModal, setOpenModal] = useState(false);
-  const [message, setMessage] = useState("")
+  const [modalMessage, setModalMessage] = useState("");
   const [user, setUser] = useSessionStorage<UserSession>("user", {
     username: "",
     email: "",
@@ -90,23 +89,30 @@ export default function Login() {
     setActiveStep(user.googleAuthenticated ? user.discordAuthenticated ? 2 : 1 : 0)
   }, [user])
   useEffect(() => {
-    console.log(user)
     if (!session || !session.user) return
-    console.log(session.user)
     if (session.user.provider === "google") {
-      axios.get(`${SERVER_URL}/api/user-details?filters[gctMailId][$eq]=${session.user!.email}&&fields[0]=id&&fields[1]=rollNo&&fields[2]=name`, {
+      axios.get(`${SERVER_URL}/api/users?filters[email][$eq]=${session.user.email}`, {
         headers: {
           "Authorization": "Bearer " + process.env.NEXT_PUBLIC_SERVER_BEARER
         }
-      }).then((res: any) => {
-        console.log(res)
-        if (!res.data.data.length) {
-          setMessage("We cannot find your details in our database. Kindly as your class representative to contact us.")
-          setOpenModal(true)
-        } else {
-          setUser({ ...user, username: res.data.data[0].attributes.rollNo, userDetailsID: res.data.data[0].id, email: session.user.email!, googleAuthenticated: true })
+      }).then(res => {
+        if (res.data.length) {
+          setModalMessage("Seems like you have already verified, you can verify only once !")
         }
-      })
+        else {
+          axios.get(`${SERVER_URL}/api/user-details?filters[gctMailId][$eq]=${session.user!.email}&&fields[0]=id&&fields[1]=rollNo&&fields[2]=name`, {
+            headers: {
+              "Authorization": "Bearer " + process.env.NEXT_PUBLIC_SERVER_BEARER
+            }
+          }).then((res: any) => {
+            if (!res.data.data.length) {
+              setModalMessage("We cannot find your details in our database. Kindly as your class representative to contact us.")
+            } else {
+              setUser({ ...user, username: res.data.data[0].attributes.rollNo, userDetailsID: res.data.data[0].id, email: session.user.email!, googleAuthenticated: true })
+            }
+          })
+        }
+      }) 
     }
     if (session.user.provider === "discord" && !user.discordAuthenticated) {
       axios.post(`${SERVER_URL}/api/auth/local/register`, {
@@ -130,7 +136,7 @@ export default function Login() {
       }).catch(function (err: any) {
 
         // setMessage(err.message);
-        // setOpenModal(true);
+        // setModalMessage(true);
       })
     }
     if (activeStep == 2) {
@@ -167,8 +173,8 @@ export default function Login() {
         </Box>
       </Grid>
       <Modal
-        open={openModal}
-        onClose={() => setOpenModal(false)}
+        open={modalMessage.length ? true : false}
+        onClose={() => setModalMessage("")}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
@@ -188,7 +194,7 @@ export default function Login() {
             Oops! There seems to be a problem
           </Typography>
           <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            {message}
+            {modalMessage}
           </Typography>
         </Box>
       </Modal>
