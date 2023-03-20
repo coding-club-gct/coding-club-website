@@ -27,6 +27,7 @@ export default NextAuth({
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
     })
   ],
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: '/'
   }
