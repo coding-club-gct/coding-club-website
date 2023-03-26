@@ -47,8 +47,8 @@ export default function Login() {
       label: "Voila!",
       component: (
         <Box>
-          <Typography variant="h4" sx={{ mb: 2 }} fontWeight={800} textAlign="center" color="primary.light"> 
-          Welcome to the Coding Club</Typography>
+          <Typography variant="h4" sx={{ mb: 2 }} fontWeight={800} textAlign="center" color="primary.light">
+            Welcome to the Coding Club</Typography>
         </Box>
       )
     }
@@ -93,18 +93,19 @@ export default function Login() {
     if (session.user.provider === "google") {
       axios.get(`${SERVER_URL}/api/users?filters[email][$eq]=${session.user.email}`, {
         headers: {
-          "Authorization": "Bearer " + process.env.NEXT_PUBLIC_SERVER_BEARER
+          "Authorization": `bearer ${process.env.NEXT_PUBLIC_SERVER_BEARER}`
         }
       }).then(res => {
         if (res.data.length) {
-          setModalMessage("Seems like you have already verified, you can verify only once !")
+          setModalMessage("Seems like you have already been verified, you can verify only once !")
         }
         else {
           axios.get(`${SERVER_URL}/api/user-details?filters[gctMailId][$eq]=${session.user!.email}&&fields[0]=id&&fields[1]=rollNo&&fields[2]=name`, {
             headers: {
-              "Authorization": "Bearer " + process.env.NEXT_PUBLIC_SERVER_BEARER
+              "Authorization": `bearer ${process.env.NEXT_PUBLIC_SERVER_BEARER}`
             }
-          }).then((res: any) => {
+          }
+          ).then((res: any) => {
             if (!res.data.data.length) {
               setModalMessage("We cannot find your details in our database. Kindly as your class representative to contact us.")
             } else {
@@ -112,7 +113,7 @@ export default function Login() {
             }
           })
         }
-      }) 
+      })
     }
     if (session.user.provider === "discord" && !user.discordAuthenticated) {
       axios.post(`${SERVER_URL}/api/auth/local/register`, {
@@ -123,7 +124,7 @@ export default function Login() {
         userDetail: Number(user.userDetailsID)
       }, {
         headers: {
-          "Authorization": "Bearer " + process.env.NEXT_PUBLIC_SERVER_BEARER
+          "Authorization": `bearer ${process.env.NEXT_PUBLIC_SERVER_BEARER}`
         }
       }).then(() => {
         setUser({
@@ -155,7 +156,7 @@ export default function Login() {
         <Box sx={{ display: 'flex', flexDirection: "column", alignItems: 'center', height: '100%', p: { md: 10, sm: 4 } }}>
           <Typography variant="h2" sx={{ mb: 2 }} fontWeight={800} textAlign="center" color="primary.main">
             Welcome to the Coding Club Portal
-            </Typography>
+          </Typography>
           <Stepper alternativeLabel activeStep={activeStep}>
             {steps.map((step, index) => {
               return (
